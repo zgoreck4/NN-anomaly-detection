@@ -23,8 +23,8 @@ class NNAnomalyDetector:
         return distances.mean()
     
     def _reachability(self, distance: np.ndarray, neighbour_idx: int) -> float:
-        neigh_dist, _ =  self.kNN.predict(self.kNN.X_train[neighbour_idx].reshape(1, -1))
-        return max(distance, self._k_distance(neigh_dist[0]))
+        neigh_dist = self.kNN.train_distances[neighbour_idx]
+        return max(distance, self._k_distance(neigh_dist))
     
     def _loc_reachability_density(self, distances: np.ndarray, neighbours_idx: np.ndarray) -> float:
         reachability_sum = 0
@@ -35,9 +35,10 @@ class NNAnomalyDetector:
     def _lof(self, distances: np.ndarray, neighbours_idx: np.ndarray) -> float:
         sum = 0
         for distance, neighbour_idx in zip(distances, neighbours_idx):
-            neigh_distances, neigh_neighbours_idx =  self.kNN.predict(self.kNN.X_train[neighbour_idx].reshape(1, -1))
+            neigh_distances = self.kNN.train_distances[neighbour_idx]
+            neigh_neighbours_idx = self.kNN.train_neigh_idx[neighbour_idx]
             print(f"neigh_distances: {neigh_distances}")
-            sum += self._loc_reachability_density(neigh_distances[0], neigh_neighbours_idx[0])
+            sum += self._loc_reachability_density(neigh_distances, neigh_neighbours_idx)
             print(f"sum: {sum}")
         return sum/self._loc_reachability_density(distances, neighbours_idx)/len(neighbours_idx)
 
