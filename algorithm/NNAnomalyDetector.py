@@ -48,7 +48,7 @@ class NNAnomalyDetector:
             lof_list.append(sum/len(example_pred_neighbours))
         return lof_list
 
-    def train(self, X: np.ndarray) -> None:
+    def fit(self, X: np.ndarray) -> None:
         self.kNN = KNN(self.k, self.metric)
         self.kNN.fit(X)
         self.fitted = True
