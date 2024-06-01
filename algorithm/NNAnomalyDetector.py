@@ -8,7 +8,7 @@ class NNAnomalyDetector:
         self.k = k
         self.metric = metric
 
-        outlier_factor_dict = {'k_distance': self._k_distance, 'mean_knn_distance': self._mean_knn_distance, "loc_reachability_density": self._loc_reachability_density, "lof": self._lof}
+        outlier_factor_dict = {'k_distance': self._k_distance, 'mean_knn_distance': self._mean_knn_distance, "negative_loc_reachability_density": self._negative_loc_reachability_density, "lof": self._lof}
         outlier_factor = outlier_factor_dict.get(outlier_factor_input)
         if outlier_factor==None:
             raise ValueError("Invalid outlier factor metric name")
@@ -26,11 +26,11 @@ class NNAnomalyDetector:
         neigh_dist = self.kNN.train_distances[neighbour_idx]
         return max(distance, self._k_distance(neigh_dist))
     
-    def _loc_reachability_density(self, distances: np.ndarray, neighbours_idx: np.ndarray) -> float:
+    def _negative_loc_reachability_density(self, distances: np.ndarray, neighbours_idx: np.ndarray) -> float:
         reachability_sum = 0
         for distance, neighbour_idx in zip(distances, neighbours_idx):
             reachability_sum += self._reachability(distance, neighbour_idx)
-        return 1/(reachability_sum/len(neighbours_idx))
+        return -1/(reachability_sum/len(neighbours_idx))
 
     def _lof(self, distances: np.ndarray, neighbours_idx: np.ndarray) -> float:
         sum = 0
@@ -38,9 +38,9 @@ class NNAnomalyDetector:
             neigh_distances = self.kNN.train_distances[neighbour_idx]
             neigh_neighbours_idx = self.kNN.train_neigh_idx[neighbour_idx]
             print(f"neigh_distances: {neigh_distances}")
-            sum += self._loc_reachability_density(neigh_distances, neigh_neighbours_idx)
+            sum += self._negative_loc_reachability_density(neigh_distances, neigh_neighbours_idx)
             print(f"sum: {sum}")
-        return sum/self._loc_reachability_density(distances, neighbours_idx)/len(neighbours_idx)
+        return sum/self._negative_loc_reachability_density(distances, neighbours_idx)/len(neighbours_idx)
 
     def fit(self, X: np.ndarray) -> None:
         self.kNN = KNN(self.k, self.metric)
