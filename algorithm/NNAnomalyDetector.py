@@ -37,26 +37,19 @@ class NNAnomalyDetector:
         for distance, neighbour_idx in zip(distances, neighbours_idx):
             neigh_distances = self.kNN.train_distances[neighbour_idx]
             neigh_neighbours_idx = self.kNN.train_neigh_idx[neighbour_idx]
-            print(f"neigh_distances: {neigh_distances}")
             sum += self._negative_loc_reachability_density(neigh_distances, neigh_neighbours_idx)
-            print(f"sum: {sum}")
         return sum/self._negative_loc_reachability_density(distances, neighbours_idx)/len(neighbours_idx)
 
     def fit(self, X: np.ndarray) -> None:
         self.kNN = KNN(self.k, self.metric)
         self.kNN.fit(X)
         self.fitted = True
-        print(self.fitted)
     
     def predict(self, X: np.ndarray, thresh: float = None) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
         if not self.fitted:
             raise ValueError("Model has not been trained yet")
            
         distances, neighbours_idx = self.kNN.predict(X)
-        print('distances')
-        print(distances)
-        print('neighbours_idx')
-        print(neighbours_idx)
 
         outlier_factor_list = []
         for example_distances, example_neighbours_idx in zip(distances, neighbours_idx):
